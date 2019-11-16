@@ -10,7 +10,10 @@ let BomberFrame2;
 let BomberFrame3;
 let BomberFrame4;
 
+let gameState = "pregame";
+
 let preGameController;
+let playGameController;
 
 function preload() {
 
@@ -40,10 +43,12 @@ function setup() {
 
     textFont(ShareTechMono);
 
+    // Scale up the player tank's base and wheels.
     let tankScale = 2;
     TankSpriteBase.resizeNN(TankSpriteBase.width * tankScale, TankSpriteBase.height * tankScale);
     TankSpriteWheel.resizeNN(TankSpriteWheel.width * tankScale, TankSpriteWheel.height * tankScale);
 
+    // Scale up the Bomber NPC's frames.
     let bomberScale = 2;
     BomberFrame0.resizeNN(BomberFrame0.width * bomberScale, BomberFrame0.height * bomberScale);
     BomberFrame1.resizeNN(BomberFrame1.width * bomberScale, BomberFrame1.height * bomberScale);
@@ -52,11 +57,30 @@ function setup() {
     BomberFrame4.resizeNN(BomberFrame4.width * bomberScale, BomberFrame4.height * bomberScale);
 
     preGameController = new PreGameObj();
+    playGameController = new PlayGameControllerObj();
 }
 
 function draw() {
-
     background(COLORS.skyBlue);
 
-    preGameController.draw();
+    switch(gameState) {
+        case "pregame":
+            preGameController.draw();
+            preGameController.execute();
+
+            if(preGameController.shouldTransitionToGame()) {
+                playGameController.reset();
+                gameState = "play";
+            }
+        break;
+        case "play":
+            playGameController.draw();
+            playGameController.execute();
+
+            if(playGameController.shouldTransitionToStart()) {
+                preGameController.reset();
+                gameState = "pregame";
+            }
+        break;
+    }
 }

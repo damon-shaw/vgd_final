@@ -2,6 +2,7 @@ function PreGameObj() {
 
     this.state = "start";
     this.inited = false;
+    this.transitionToGame = false;
 
     this.init = function() {
         this.myTank = new TankSprite(50, 340);
@@ -33,15 +34,16 @@ function PreGameObj() {
             this.init();
         }
 
-        this.drawBackdrop();
-        this.stepNPCs();
-
         switch(this.state) {
             case "start":
+                this.drawBackdrop();
+                this.stepNPCs();
                 this.drawStart();
             break;
 
             case "howToPlay":
+                this.drawBackdrop();
+                this.stepNPCs();
                 this.drawHowToPlay();
             break;
 
@@ -52,6 +54,10 @@ function PreGameObj() {
 
         
     };
+
+    this.execute = function() {
+
+    }
 
     this.stepNPCs = function() {
         //console.log("Stepping NPCs");
@@ -128,18 +134,18 @@ function PreGameObj() {
         selectors.forEach((selector, idx) => {
             selector.draw();
 
-            let bounds = selector.getBounds();
-            if(mouseX > bounds.xMin && mouseX < bounds.xMax) {
-                if(mouseY > bounds.yMin && mouseY < bounds.yMax) {
-                    if(mouseIsPressed) {
-                        if(idx === 1) {
+            if(selector.isInBounds(mouseX, mouseY)) {
+                if(mouseIsPressed)
+                    switch(idx) {
+                        case 0:
+                            this.transitionToGame = true;
+                        break;
+                        case 1:
                             this.state = "howToPlay";
-                        }
+                        break;
                     }
-                    else {
-                        selector.spin();
-                    }
-                }
+                else
+                    selector.spin();
             }
         });
         
@@ -187,6 +193,10 @@ function PreGameObj() {
                 }
             }
         });
+    }
+
+    this.shouldTransitionToGame = function() {
+        return this.transitionToGame;
     }
 
 }
