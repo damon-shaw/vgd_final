@@ -10,7 +10,7 @@ let BomberFrame2;
 let BomberFrame3;
 let BomberFrame4;
 
-let gameState = "pregame";
+let gameState = "game";
 
 let preGameController;
 let playGameController;
@@ -58,6 +58,9 @@ function setup() {
 
     preGameController = new PreGameObj();
     playGameController = new PlayGameControllerObj();
+
+    preGameController.init();
+    playGameController.init();
 }
 
 function draw() {
@@ -73,7 +76,7 @@ function draw() {
                 gameState = "play";
             }
         break;
-        case "play":
+        case "game":
             playGameController.draw();
             playGameController.execute();
 
