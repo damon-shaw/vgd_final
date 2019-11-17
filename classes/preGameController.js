@@ -6,26 +6,29 @@ function PreGameObj() {
 
     this.init = function() {
         this.myTank = new TankSprite(50, 340);
-        this.myBomber = new BomberSprite(40);
-        this.myBomber2 = new BomberSprite(120);
 
-        this.playSelector = new TankWheelSprite(90, 150);
-        this.howToPlaySelector = new TankWheelSprite(90, 200);
+        this.playSelector = new TankWheelSprite(220, 150, 4);
+        this.howToPlaySelector = new TankWheelSprite(220, 200, 10);
 
         this.toStartSelector = new TankWheelSprite(190, 330);
 
         this.inited = true;
 
-        this.mountains = [[],[],[],[],[],[]]; 
+        this.mountains = [
+            new Mountain(0.020, 105, 290, COLORS.evilGrey),
+            new Mountain(0.011, 120, 290, COLORS.highPeakGrey),
+            new Mountain(0.009, 135, 290, COLORS.sageGreen),
+            new Mountain(0.009, 130, 310, COLORS.oliveGreen),
+            new Mountain(0.009, 160, 320, COLORS.armyGreen),
+            new Mountain(0.004, 305, 320, COLORS.seaweedGreen),
+            new Mountain(0.004, 365, 375, COLORS.dirt)
+        ];
 
-        this.a = random(1500);
-        for (var i=0; i<=5; i++) {
-            for (var j=0; j<=40; j++) {
-                var n = noise(this.a);
-                this.mountains[i][j] = map(n,0,1,0,400-i*50);
-                this.a += 0.025;  // ruggedness
-            }
-        }
+        this.bombers = [
+            new BomberSprite(40)
+        ];
+
+        this.explosions = [];
     };
 
     this.draw = function() {
@@ -56,18 +59,46 @@ function PreGameObj() {
     };
 
     this.execute = function() {
+        if(random() < 0.005) {
+            this.bombers.push(new BomberSprite(random(100, 250)));
+        }
 
+        this.bombers.forEach((bomber, index) => {
+            if(bomber.isOutOfFrame())
+                this.bombers.splice(index, 1);
+            
+            bomber.shells.forEach((shell, shellIdx) => {
+                if(Collider.areColliding(this.myTank, shell)) {
+                    this.explosions.push(new ExplosionAnimation(shell.position.x, shell.position.y));
+                    bomber.shells.splice(shellIdx, 1);
+                }
+            })
+        });
+
+        this.explosions.forEach((explosion, index) => {
+            if(explosion.isDone()) {
+                this.explosions.splice(1, index);
+            }
+        });
+        
     }
 
     this.stepNPCs = function() {
         //console.log("Stepping NPCs");
         this.myTank.move();
-        this.myBomber.move();
-        this.myBomber2.move();
+        
+        this.bombers.forEach(bomber => {
+            bomber.move();
+            bomber.execute();
+
+            bomber.shells.forEach(shell => shell.move());
+        });
+
     }
 
     this.drawBackdrop = function() {
         
+        fill(COLORS.skyBlue);
         noStroke();
 
         // sky
@@ -83,50 +114,45 @@ function PreGameObj() {
             n1 += 0.02; // step size in noise
         }
         this.a += 0.01;  // speed of clouds
-        
-        // mountains
-        for (x=0; x<=5; x++) {
-            for (var y=0; y<=40; y++) {
-                fill(20 + x*5, 60+x*10, 0);
-                // draw quads of width 10 pixels
-                quad(
-                    y*10,
-                    this.mountains[x][y]+x*55,
-                    (y+1)*10,
-                    this.mountains[x][y+1]+(x)*55,
-                    (y+1)*10,
-                    400,
-                    y*10,
-                    400
-                );
-            }
-        }
+
+        // Draw the mountains.
+        this.mountains.forEach(mountain => {
+            mountain.draw();
+            mountain.move();
+        });
 
         this.myTank.draw();
-        this.myBomber.draw();
-        this.myBomber2.draw();
+        
+        this.bombers.forEach(bomber => {
+            bomber.draw();
+            bomber.shells.forEach(shell => shell.draw());
+        });
+
+        this.explosions.forEach(explosion => {
+            explosion.draw();
+        });
     }
 
     this.drawStart = function() {
 
         fill(COLORS.translucentWhite);
-        rect(45, 75, 313, 45);
+        rect(205, 55, 460, 70);
 
         fill(COLORS.evilGrey);
-        textSize(40);
-        text("Master Smasher", 50, 110);
-
-        fill(COLORS.translucentWhite);
-        rect(125, 145, 250, 35);
-        fill(COLORS.evilGrey);
-        textSize(30);
-        text("GET TO SMASHIN'", 130, 173);
+        textSize(60);
+        text("Master Smasher", 210, 110);
 
         fill(COLORS.translucentWhite);
-        rect(125, 195, 250, 35);
+        rect(275, 135, 345, 45);
         fill(COLORS.evilGrey);
-        textSize(30);
-        text("HOW TO PLAY", 130, 223);
+        textSize(42);
+        text("GET TO SMASHIN'", 280, 173);
+
+        fill(COLORS.translucentWhite);
+        rect(275, 195, 345, 45);
+        fill(COLORS.evilGrey);
+        textSize(42);
+        text("HOW TO PLAY", 280, 232);
 
 
         // If the player is hovering over a wheel menu item selector, spin it.

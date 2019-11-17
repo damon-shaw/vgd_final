@@ -18,6 +18,8 @@ function Player(xPos, yPos) {
     this.velocity = createVector(0, 0);
     this.position = createVector(xPos, yPos);
 
+    this.launched = false;
+
     this.init = function() {
         this.movementSpeed = 1;
         this.forwardMovementVector = createVector(this.movementSpeed, 0);
@@ -41,9 +43,11 @@ function Player(xPos, yPos) {
         }
         if(keyIsDown(D_KEY)) // If the D key is pressed
             this.acceleration.add(this.forwardMovementVector);
-        if(keyIsDown(W_KEY) && this.grounded) {
-            this.velocity.y = -30;
-            this.grounded = false;
+        if((keyIsDown(W_KEY) && this.grounded) || this.launched) {
+            if(this.grounded) this.grounded = false;
+            else if(this.launched) this.launched = false;
+
+            this.velocity.y = -20;            
         }
         if(!keyIsDown(A_KEY) && !keyIsDown(D_KEY)) // No movement keys are pressed.
             this.acceleration.x = -0.08*this.velocity.x;
@@ -63,8 +67,8 @@ function Player(xPos, yPos) {
             }
         }
 
-        if(this.position.x > 400 - this.baseWidth) {
-            this.position.x = 400 - this.baseWidth;
+        if(this.position.x > width - this.baseWidth) {
+            this.position.x = width - this.baseWidth;
             this.velocity.x = 0;
         }
 
@@ -146,4 +150,20 @@ function Player(xPos, yPos) {
 
         this.wheelAngle += 1;
     };
+
+    /**
+     * Returns the bounds of the player character.
+     */
+    this.getBounds = function() {
+        return {
+            xMin: this.position.x,
+            xMax: this.position.x + this.baseWidth,
+            yMin: this.position.y,
+            yMax: this.position.y + this.baseHeight
+        };
+    }
+
+    this.launch = function() {
+        this.launched = true;
+    }
 }
