@@ -69,7 +69,12 @@ function PreGameObj() {
             
             bomber.shells.forEach((shell, shellIdx) => {
                 if(Collider.areColliding(this.myTank, shell)) {
-                    this.explosions.push(new ExplosionAnimation(shell.position.x, shell.position.y));
+                    this.explosions.push(
+                        new ExplosionAnimation(
+                            (shell.position.x + this.myTank.x) / 2,
+                            (shell.position.y + this.myTank.y) / 2
+                        )
+                    );
                     bomber.shells.splice(shellIdx, 1);
                 }
             })
